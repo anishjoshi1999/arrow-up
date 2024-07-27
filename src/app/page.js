@@ -13,7 +13,7 @@ export default function Home() {
   const [accuracy, setAccuracy] = useState(100);
   const [leaderboard, setLeaderboard] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [gameStatus, setGameStatus] = useState("start"); // Manage game button state
+  const [gameStatus, setGameStatus] = useState("start");
 
   useEffect(() => {
     if (gameActive) {
@@ -37,7 +37,7 @@ export default function Home() {
     setStartTime(new Date());
     setTimeElapsed(0);
     setErrorMessage("");
-    setGameStatus("cancel"); // Change button to Cancel
+    setGameStatus("cancel");
   };
 
   const cancelGame = () => {
@@ -50,15 +50,19 @@ export default function Home() {
     setTimeElapsed(0);
     setAccuracy(100);
     setErrorMessage("");
-    setGameStatus("start"); // Change button to Start
+    setGameStatus("start");
   };
 
   const restartGame = () => {
-    startGame(); // Start a new game, which will also update the gameStatus
+    startGame();
   };
 
   const checkInput = useCallback(
     (event) => {
+      // Prevent the default action of arrow keys (scrolling)
+      if (event.key.startsWith("Arrow")) {
+        event.preventDefault();
+      }
       if (!gameActive) return;
 
       setTotalKeyPresses((prev) => prev + 1);
@@ -86,7 +90,7 @@ export default function Home() {
         if (currentArrowIndex + 1 === typedArrows.length) {
           const timeTaken = (new Date() - startTime) / 1000;
           setGameActive(false);
-          setGameStatus("restart"); // Show Restart button
+          setGameStatus("restart");
           setLeaderboard((prev) => [
             ...prev,
             {
@@ -121,36 +125,40 @@ export default function Home() {
 
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center">
-      <header className="bg-gray-800 text-white text-center py-3 w-full">
-        <h1 className="text-3xl font-bold">Arrow Up</h1>
+      <header className="bg-gray-800 text-white text-center py-4 w-full">
+        <h1 className="text-4xl font-extrabold">Arrow Up</h1>
       </header>
-      <main className="container mx-auto my-5 p-4">
-        <section className="bg-white shadow-md rounded p-4 mb-5">
-          <div className="flex justify-center mb-4" id="arrowContainer">
+      <main className="container mx-auto my-5 p-4 sm:px-6 lg:px-8">
+        <section className="bg-white shadow-lg rounded-lg p-6 mb-6">
+          <div className="flex justify-center gap-4 mb-4">
             {typedArrows.map((arrow, index) => (
               <span
                 key={index}
                 className={`arrow ${
-                  index === currentArrowIndex ? "current" : ""
-                } ${index < currentArrowIndex ? "correct" : ""} ${
-                  index === currentArrowIndex && errorMessage ? "wrong" : ""
-                }`}
+                  index === currentArrowIndex ? "border-blue-500" : ""
+                } ${index < currentArrowIndex ? "bg-green-200" : ""} ${
+                  index === currentArrowIndex && errorMessage
+                    ? "bg-red-200"
+                    : ""
+                } p-4 text-2xl rounded-full border-2 border-transparent transition-all duration-300`}
+                aria-label={`Arrow ${arrow}`}
               >
                 {arrow}
               </span>
             ))}
           </div>
-          <div className="mb-3">
+          <div className="mb-4">
             <input
               type="text"
-              className="p-2 border rounded w-full"
+              className="p-3 border rounded-lg w-full text-lg"
               id="arrowInput"
               placeholder="Type the arrows..."
               disabled={!gameActive}
+              aria-label="Type the arrows"
             />
           </div>
           <button
-            className="bg-gray-800 text-white py-2 px-4 rounded w-full"
+            className="bg-gray-800 text-white py-3 px-6 rounded-lg w-full text-lg font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300"
             onClick={
               gameStatus === "start"
                 ? startGame
@@ -165,53 +173,34 @@ export default function Home() {
               ? "Cancel"
               : "Restart"}
           </button>
-          <div className="mt-3 text-center" id="timer">
+          <div className="mt-4 text-center text-lg font-medium" id="timer">
             Time: {timeElapsed.toFixed(2)}s
           </div>
-          <div className="text-center mt-2" id="accuracy">
+          <div className="text-center text-lg font-medium mt-2" id="accuracy">
             Accuracy: {accuracy.toFixed(2)}%
           </div>
-          <div className="text-red-500 text-center mt-2" id="errorMessage">
+          <div
+            className="text-red-500 text-center mt-2 text-lg font-medium"
+            id="errorMessage"
+          >
             {errorMessage}
           </div>
         </section>
-        <section className="bg-white shadow-md rounded p-4">
-          <h2 className="text-xl font-bold mb-3">Leaderboard</h2>
-          <ul className="list-none p-0" id="leaderboard">
+        <section className="bg-white shadow-lg rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-4">Leaderboard</h2>
+          <ul className="list-none p-0">
             {leaderboard.map((entry, index) => (
-              <li key={index} className="border-b py-2">
-                Time: {entry.time.toFixed(2)}s<br /> Accuracy:{" "}
+              <li key={index} className="border-b py-3 text-lg font-medium">
+                Time: {entry.time.toFixed(2)}s <br /> Accuracy:{" "}
                 {entry.accuracy.toFixed(2)}%
               </li>
             ))}
           </ul>
         </section>
       </main>
-      <footer className="bg-gray-800 text-white text-center py-3 w-full">
+      <footer className="bg-gray-800 text-white text-center py-4 w-full">
         <p>&copy; 2024 Arrower. All rights reserved.</p>
       </footer>
-      <style jsx>{`
-        .arrow {
-          font-size: 2rem;
-          margin: 0 0.5rem;
-          padding: 10px;
-          border-radius: 50%;
-          border: 2px solid transparent;
-          display: inline-block;
-        }
-
-        .arrow.current {
-          border-color: blue;
-        }
-
-        .arrow.correct {
-          background-color: lightgreen;
-        }
-
-        .arrow.wrong {
-          background-color: lightcoral;
-        }
-      `}</style>
     </div>
   );
 }
