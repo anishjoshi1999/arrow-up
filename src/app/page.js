@@ -13,6 +13,7 @@ export default function Home() {
   const [accuracy, setAccuracy] = useState(100);
   const [leaderboard, setLeaderboard] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [gameStatus, setGameStatus] = useState("start"); // Manage game button state
 
   useEffect(() => {
     if (gameActive) {
@@ -36,6 +37,24 @@ export default function Home() {
     setStartTime(new Date());
     setTimeElapsed(0);
     setErrorMessage("");
+    setGameStatus("cancel"); // Change button to Cancel
+  };
+
+  const cancelGame = () => {
+    setTypedArrows([]);
+    setCurrentArrowIndex(0);
+    setTotalKeyPresses(0);
+    setCorrectKeyPresses(0);
+    setGameActive(false);
+    setStartTime(null);
+    setTimeElapsed(0);
+    setAccuracy(100);
+    setErrorMessage("");
+    setGameStatus("start"); // Change button to Start
+  };
+
+  const restartGame = () => {
+    startGame(); // Start a new game, which will also update the gameStatus
   };
 
   const checkInput = useCallback(
@@ -67,6 +86,7 @@ export default function Home() {
         if (currentArrowIndex + 1 === typedArrows.length) {
           const timeTaken = (new Date() - startTime) / 1000;
           setGameActive(false);
+          setGameStatus("restart"); // Show Restart button
           setLeaderboard((prev) => [
             ...prev,
             {
@@ -102,7 +122,7 @@ export default function Home() {
   return (
     <div className="bg-gray-100 min-h-screen flex flex-col items-center">
       <header className="bg-gray-800 text-white text-center py-3 w-full">
-        <h1 className="text-3xl font-bold">Arrower</h1>
+        <h1 className="text-3xl font-bold">Arrow Up</h1>
       </header>
       <main className="container mx-auto my-5 p-4">
         <section className="bg-white shadow-md rounded p-4 mb-5">
@@ -131,9 +151,19 @@ export default function Home() {
           </div>
           <button
             className="bg-gray-800 text-white py-2 px-4 rounded w-full"
-            onClick={startGame}
+            onClick={
+              gameStatus === "start"
+                ? startGame
+                : gameStatus === "cancel"
+                ? cancelGame
+                : restartGame
+            }
           >
-            Start Game
+            {gameStatus === "start"
+              ? "Start Game"
+              : gameStatus === "cancel"
+              ? "Cancel"
+              : "Restart"}
           </button>
           <div className="mt-3 text-center" id="timer">
             Time: {timeElapsed.toFixed(2)}s
